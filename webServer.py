@@ -46,8 +46,8 @@ def webServer(port=13331):
       connectionSocket.close() #closing the connection socket
       
     except Exception as e:
-      with open("notfound.html", "rb") as f:
-        responsebody = f.read()
+      
+      responsebody = "<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'><title>404 Not Found</title></head><body><p>Sorry the page you are looking for does not exist</p></body></html>"
       
       headers = ("HTTP/1.1 400 Not Found OK\r\n" 
                   "Server: kt1661-localhost\r\n" 
@@ -55,7 +55,7 @@ def webServer(port=13331):
                   "Content-Type: text/html; charset=UTF-8\r\n"
                   "Content-Length: {}\r\n\r\n".format(len(responsebody)))
       
-      response = headers.encode() + responsebody
+      response = headers.encode() + responsebody.encode()
       connectionSocket.send(response)
       connectionSocket.close() #closing the connection socket
 
