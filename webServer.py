@@ -17,39 +17,46 @@ def webServer(port=13331):
     #Establish the connection
     #print('Ready to serve...')
     connectionSocket, addr = serverSocket.accept()
-    
     try:
       #print(f"Connected IP: {addr}")
       message = connectionSocket.recv(1024)
       filename = message.split()[1]
       #print(filename)
       
-      #opens the client requested file. 
-      #Plenty of guidance online on how to open and read a file in python. How should you read it though if you plan on sending it through a socket?
-      f = open(filename[1:], "rb")
+      #opens the client requested file, reads and closes
+      with open(filename[1:], "rb") as f:
+        responsebody = f.read()
       
-
-      #Store the headers you want to send for any valid or invalid request.   
-     
-      #Content-Type is an example on how to send a header as bytes. There are more!
-      outputdata = b"HTTP/1.1 200 OK; Content-Type: text/html; charset=UTF-8\r\n\r\n"
+      headers = ("HTTP/1.1 200 OK\r\n" 
+                  "Server: kt1661-localhost\r\n" 
+                  "Connection: keep-alive\r\n"
+                  "Content-Type: text/html; charset=UTF-8\r\n"
+                  "Content-Length: {}\r\n\r\n".format(len(responsebody)))
+      
       #Note that a complete header must end with a blank line, creating the four-byte sequence "\r\n\r\n" Refer to https://w3.cs.jmu.edu/kirkpams/OpenCSF/Books/csf/html/TCPSockets.html
     
-      for i in f: 
-        outputdata += i
+      response = headers.encode() + responsebody
         
       #print(outputdata)
-      #Send the content of the requested file to the client (don't forget the headers you created)!
-      #Send everything as one send command, do not send one line/item at a time!
+      #Send the content of the requested file to the client with headers
       f.close()
 
-      connectionSocket.sendall(outputdata)
+      connectionSocket.sendall(response)
         
       connectionSocket.close() #closing the connection socket
       
     except Exception as e:
-      outputdata = b"HTTP/1.1 404 NOT FOUND; Content-Type: text/html; charset=UTF-8\r\n\r\n"
-      connectionSocket.send(outputdata)
+      with open("notfound.html", "rb") as f:
+        responsebody = f.read()
+      
+      headers = ("HTTP/1.1 400 Not Found OK\r\n" 
+                  "Server: kt1661-localhost\r\n" 
+                  "Connection: keep-alive\r\n"
+                  "Content-Type: text/html; charset=UTF-8\r\n"
+                  "Content-Length: {}\r\n\r\n".format(len(responsebody)))
+      
+      response = headers.encode() + responsebody
+      connectionSocket.send(response)
       connectionSocket.close() #closing the connection socket
 
 
